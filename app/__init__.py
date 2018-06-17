@@ -33,4 +33,4 @@ def load_user(user_id):
     return User.query.filter_by(id=user_id).first()
 
 
-from . import views, models  # noqa
+from . import views, models, manage  # noqa
