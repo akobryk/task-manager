@@ -43,5 +43,11 @@ class ResetPasswordForm(FlaskForm):
 
 class UpdateProfileForm(FlaskForm):
 
+    username = StringField('Username*')
+    email = EmailField('Email*')
     full_name = StringField('Full name*', validators=[DataRequired()])
-    avatar = FileField('Upload avatar', validators=[FileAllowed(['jpg', 'png'], 'Only jpg and png')])
+    avatar = FileField(
+        'Upload avatar',
+        validators=[
+            FileAllowed(['jpg', 'png'], 'Only jpg and png')
+            ])

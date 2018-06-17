@@ -112,3 +112,8 @@ local_config.py
 
 # Local db
 app.db
+media/
+
+# Temporary
+migrations/
+not_commit.py

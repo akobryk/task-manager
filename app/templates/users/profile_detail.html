@@ -1,0 +1,12 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<ul>
+    <li>{{ user.username }}</li>
+    <li>{{ user.email }}</li>
+    <li>{{ user.superuser }}</li>
+    <li><img src="{{ url_for('get_media', filename=user.avatar) }}" width="30" height="30"></li>
+
+</ul>
+{% endblock %}

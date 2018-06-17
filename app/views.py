@@ -175,14 +175,33 @@ def profile_update(username):
     if form.validate_on_submit():
         avatar = form.avatar.data
         if avatar:
+            import shutil
             filename = secure_filename(avatar.filename)
-            os.makedirs(os.path.join(app.config['UPLOAD_FOLDER']), exist_ok=True)
-            path = app.config['UPLOAD_FOLDER'] + '/' + filename
-            print(path)
-            avatar.save(path)
-            user.avatar = filename
+            avatar.save('/tmp/' + filename)
+            size = os.stat('/tmp/' + filename).st_size
+            if size > app.config['MAX_IMAGE_LENGTH']:
+                form.avatar.errors.append('A file size must be < 5 mb')
+            else:
+                os.makedirs(os.path.join(app.config['UPLOAD_FOLDER']), exist_ok=True)
+                path = app.config['UPLOAD_FOLDER'] + '/' + filename
+                avatar.save(path)
+                user.avatar = filename
+
+        # TODO: refactor a validation 
+
         user.full_name = form.full_name.data
         db.session.commit()
         flash('A user account has been updated!', 'info')
 
     return render_template('users/profile_update.html', form=form, user=user)
+
+
+@app.route('/profile/<username>')
+@login_required
+@check_confirmed
+def profile_detail(username):
+    user = User.query.filter_by(username=username).first()
+    if not user:
+        abort(404)
+
+    return render_template('users/profile_detail.html', user=user)
