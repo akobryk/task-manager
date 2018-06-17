@@ -1,13 +1,20 @@
+import os
 from datetime import datetime
 from flask import render_template, redirect, url_for, flash, abort
 from flask_login import login_user, logout_user, login_required, current_user
+from werkzeug.utils import secure_filename
 from app import app, db
 from .models import User
-from .forms import RegisterForm, LoginForm, ResetPasswordForm, UserResetPasswordForm
+from .forms import (
+    RegisterForm, LoginForm, ResetPasswordForm, UserResetPasswordForm, UpdateProfileForm
+    )
 from .utils import send_email, generate_confirmation_token, confirm_token
+from .decorators import check_confirmed
 
 
 @app.route('/')
+@login_required
+@check_confirmed
 def index():
     return render_template('index.html')
 
@@ -154,3 +161,28 @@ def reset_password_with_token(token):
         return redirect(url_for('login'))
 
     return render_template('users/reset_password_with_token.html', form=form, token=token)
+
+
+@app.route('/profile/update/<username>', methods=['GET', 'POST'])
+@login_required
+@check_confirmed
+def profile_update(username):
+    user = User.query.filter_by(username=username).first()
+    if not current_user.superuser:
+        if current_user.get_id() != str(user.id):
+            abort(404)
+    form = UpdateProfileForm(obj=user)
+    if form.validate_on_submit():
+        avatar = form.avatar.data
+        if avatar:
+            filename = secure_filename(avatar.filename)
+            os.makedirs(os.path.join(app.config['UPLOAD_FOLDER']), exist_ok=True)
+            path = app.config['UPLOAD_FOLDER'] + '/' + filename
+            print(path)
+            avatar.save(path)
+            user.avatar = filename
+        user.full_name = form.full_name.data
+        db.session.commit()
+        flash('A user account has been updated!', 'info')
+
+    return render_template('users/profile_update.html', form=form, user=user)

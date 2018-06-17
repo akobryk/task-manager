@@ -1,5 +1,7 @@
+
 from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField
+from flask_wtf.file import FileAllowed
+from wtforms import StringField, PasswordField, FileField
 from wtforms.fields.html5 import EmailField
 from wtforms.validators import DataRequired, EqualTo
 
@@ -37,3 +39,9 @@ class ResetPasswordForm(FlaskForm):
             DataRequired(),
             EqualTo('confirm', message='Passwords should match')])
     confirm = PasswordField('Confirm password*')
+
+
+class UpdateProfileForm(FlaskForm):
+
+    full_name = StringField('Full name*', validators=[DataRequired()])
+    avatar = FileField('Upload avatar', validators=[FileAllowed(['jpg', 'png'], 'Only jpg and png')])
