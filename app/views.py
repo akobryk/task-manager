@@ -1,8 +1,9 @@
 from flask import render_template, redirect, url_for, flash
+from flask_login import login_user, logout_user
 from app import app, db
 from .models import User
 from .forms import RegisterForm
-from .utils import send_email
+from .utils import send_email, generate_confirmation_token
 
 
 @app.route('/')
@@ -45,3 +46,28 @@ def register():
                 form.email.errors.append('A user with this email already exists.')
 
     return render_template('users/register.html', form=form)
+
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    form = LoginForm()
+    if form.validate_on_submit():
+            user = \
+                User.query.filter_by(username=form.username.data).first() or \
+                User.query.filter_by(email=form.username.data).first()
+            if user and user.is_correct_password(form.password.data):
+                login_user(user)
+                flash('Logged in successfully.', 'info')
+                return redirect(url_for('index'))
+            else:
+                if not user:
+                    form.username.errors.append('Invaild username/email.')
+                else:
+                    form.password.errors.append('Invalid password.')
+    return render_template('users/login.html', form=form)
+
+
+@app.route('/logout')
+def logout():
+    logout_user()
+    return redirect(url_for('login'))
