@@ -22,3 +22,18 @@ class LoginForm(FlaskForm):
 
     username = StringField('Username or email*', validators=[DataRequired()])
     password = PasswordField('Password*', validators=[DataRequired()])
+
+
+class UserResetPasswordForm(FlaskForm):
+
+    username = StringField('Your username or email*', validators=[DataRequired()])
+
+
+class ResetPasswordForm(FlaskForm):
+
+    password = PasswordField(
+        'Your new password*',
+        validators=[
+            DataRequired(),
+            EqualTo('confirm', message='Passwords should match')])
+    confirm = PasswordField('Confirm password*')

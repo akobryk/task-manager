@@ -1,9 +1,9 @@
 from datetime import datetime
-from flask import render_template, redirect, url_for, flash
+from flask import render_template, redirect, url_for, flash, abort
 from flask_login import login_user, logout_user, login_required, current_user
 from app import app, db
 from .models import User
-from .forms import RegisterForm, LoginForm
+from .forms import RegisterForm, LoginForm, ResetPasswordForm, UserResetPasswordForm
 from .utils import send_email, generate_confirmation_token, confirm_token
 
 
@@ -115,3 +115,42 @@ def unconfirmed():
     if current_user.confirmed:
         return redirect('index')
     return render_template('users/unconfirmed.html')
+
+
+@app.route('/reset-password', methods=['GET', 'POST'])
+def reset_password():
+    form = UserResetPasswordForm()
+    if form.validate_on_submit():
+        user = \
+            User.query.filter_by(username=form.username.data).first() or \
+            User.query.filter_by(email=form.username.data).first()
+
+        if not user:
+            form.username.errors.append('There is no user with the specified username or password.')
+        else:
+            token = generate_confirmation_token(user.email)
+            recover_url = url_for('reset_password_with_token', token=token, _external=True)
+            html = render_template('recover_password.html', recover_url=recover_url)
+            subject = 'Password reset requested'
+            send_email(user.email, subject, html)
+            flash('Password reset has been sent to your email.', 'info')
+
+    return render_template('users/reset_password.html', form=form)
+
+
+@app.route('/reset-password/<token>', methods=['GET', 'POST'])
+def reset_password_with_token(token):
+    try:
+        email = confirm_token(token)
+    except Exception:
+        abort(404)
+
+    form = ResetPasswordForm()
+    if form.validate_on_submit():
+        user = User.query.filter_by(email=email).first_or_404()
+        user.password = form.password.data
+        db.session.commit()
+
+        return redirect(url_for('login'))
+
+    return render_template('users/reset_password_with_token.html', form=form, token=token)
