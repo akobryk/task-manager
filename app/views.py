@@ -38,7 +38,7 @@ def register():
 
             token = generate_confirmation_token(user.email)
             confirm_url = url_for('confirm_email', token=token, _external=True)
-            html = render_template('activate_account.html', confirm_url=confirm_url)
+            html = render_template('users/activate_account.html', confirm_url=confirm_url)
             subject = 'Please confirm your account'
 
             send_email(user.email, subject, html)
@@ -65,6 +65,8 @@ def login():
                 User.query.filter_by(email=form.username.data).first()
             if user and user.is_correct_password(form.password.data):
                 login_user(user)
+                user.last_login = db.func.now()
+                db.session.commit()
                 flash('Logged in successfully.', 'info')
                 return redirect(url_for('index'))
             else:
