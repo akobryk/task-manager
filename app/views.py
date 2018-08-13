@@ -24,7 +24,6 @@ def register():
     form = RegisterForm()
     if form.validate_on_submit():
         check_username = User.query.filter_by(username=form.username.data).first()
-        print(check_username)
         check_email = User.query.filter_by(email=form.username.data).first()
         if not check_username and not check_email:
             user = User(
