@@ -85,13 +85,13 @@ class Issue(Base):
     BUG = 'bug'
     PROPOSAL = 'proposal'
     TASK = 'task'
-    ENCHENCEMENT = 'enchencement'
+    ENHANCEMENT = 'enhancement'
 
     KINDS = [
         (BUG, 'Bug'),
         (PROPOSAL, 'Proposal'),
         (TASK, 'Task'),
-        (ENCHENCEMENT, 'Enchencement'),
+        (ENHANCEMENT, 'Enhancement'),
     ]
 
     MINOR = 'minor'
